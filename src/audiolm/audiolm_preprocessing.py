@@ -30,9 +30,15 @@ def main(language):
 
     datasets_list = []
 
+    arabic_datasets = []
     if language in ["arabic", "german_arabic","english_arabic", "all"]:
         # ASR datasets for Arabic
-        arabic_dataset_1 = load_dataset("UBC-NLP/Casablanca", split="validation")
+        dialects = ['Algeria', 'Egypt', 'Jordan', 'Mauritania', 'Morocco', 'Palestine', 'UAE', 'Yemen']
+        for d in dialects:
+            arabic_dataset_1 = load_dataset("UBC-NLP/Casablanca", d, split="validation")
+            arabic_datasets.append(arabic_dataset_1)
+
+        arabic_dataset_1 = concatenate_datasets(arabic_datasets)
         arabic_dataset_2 = load_dataset("Ahmed107/arabic-90", split="train")
         arabic_dataset_3 = load_dataset("MadLook/arabic-whisper-multidialect", split="train")
 
@@ -42,11 +48,12 @@ def main(language):
         arabic_dataset_3 = arabic_dataset_3.cast_column("audio", Audio(sampling_rate=16000))
 
         # Reduce to necessary columns
-        arabic_dataset_1 = reduce_columns(arabic_dataset_1, ["audio", "text"])
+        arabic_dataset_1 = reduce_columns(arabic_dataset_1, ["audio", "transcription"])
         arabic_dataset_2 = reduce_columns(arabic_dataset_2, ["audio", "text"])
         arabic_dataset_3 = reduce_columns(arabic_dataset_3, ["audio", "sentence"])
 
         # Prepare first Arabic dataset
+        arabic_dataset_1 = arabic_dataset_1.rename_column("transcription", "text")
         arabic_dataset_1 = arabic_dataset_1.map(lambda batch: prepare_dataset(batch, processor), remove_columns=arabic_dataset_1.column_names)
         arabic_dataset_1 = filter_audio_length(arabic_dataset_1, duration_threshold=30.0)
 
