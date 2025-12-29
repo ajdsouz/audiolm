@@ -1,5 +1,5 @@
 """
-Preprocesses multilingual audio datasets (Arabic, English, German) for STT, TTS, TTT and STS tasks:
+Preprocesses multilingual audio datasets (Arabic, English, German) for STT and TTS tasks.:
 
 This script:
 - Loads one or multiple Hugging Face datasets depending on the `--language` argument
