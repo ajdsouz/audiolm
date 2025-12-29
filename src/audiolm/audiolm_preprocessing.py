@@ -1,4 +1,29 @@
-'''Preprocessing datasets for audio tasks.'''
+"""
+Preprocesses multilingual audio datasets (Arabic, English, German) for STT, TTS, TTT and STS tasks:
+
+This script:
+- Loads one or multiple Hugging Face datasets depending on the `--language` argument
+  (supports: 'arabic', 'english', 'german', 'german_arabic', 'german_english', 'english_arabic', 'all')
+- For Arabic: automatically iterates through all available dialect configs of UBC-NLP/Casablanca
+  (['Algeria','Egypt','Jordan','Mauritania','Morocco','Palestine','UAE','Yemen'])
+- Standardizes audio to 16 kHz using `datasets.Audio` casting
+- Reduces dataset columns to only the required fields ('audio', 'text')
+- Normalizes inconsistent column names across datasets (e.g. `sentence` → `text`, `transcription` → `text`)
+- Applies Whisper AutoProcessor to:
+      • compute log-Mel spectrograms (→ stored in `"input_features"`)
+      • tokenize target transcription text (→ stored in `"labels"`)
+- Computes audio duration and filters samples > 30 seconds
+- Concatenates multiple selected datasets into a single unified dataset
+- Saves the final dataset to disk in hf `dataset.save_to_disk()` format
+
+Output format:
+    Dataset({
+        features: ['input_features', 'labels', 'input_length'],
+        num_rows: <N>
+    })
+
+"""
+
 from transformers import AutoProcessor
 from datasets import load_dataset, concatenate_datasets, Audio
 import argparse
