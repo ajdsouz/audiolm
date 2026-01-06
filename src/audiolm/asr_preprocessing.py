@@ -145,10 +145,9 @@ def main(language):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Preprocess audio datasets.")
-    parser.add_argument("--language", type = str, choices=["arabic", "english", "german", "german_english",
-                                                           "german_arabic","english_arabic", "all"],
-                                                            help="Choose one more more languages.")
+    parser.add_argument("--language", type=str, choices=["arabic", "english", "german", "german_english",
+                                                         "german_arabic", "english_arabic", "all"],
+                        help="Choose one more more languages.")
     args = parser.parse_args()
     main(args.language)
-
 
