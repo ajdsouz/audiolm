@@ -50,8 +50,8 @@ def filter_audio_length(dataset, duration_threshold):
     return dataset.filter(is_audio__length_in_range, input_columns=["input_length"])
 
 def main(language):
-    model_checkpoint = "openai/whisper-small"
-    processor = AutoProcessor.from_pretrained(model_checkpoint)
+    model_name = "openai/whisper-small"
+    processor = AutoProcessor.from_pretrained(model_name)
 
     datasets_list = []
 
