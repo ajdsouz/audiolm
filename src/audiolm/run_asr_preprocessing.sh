@@ -10,6 +10,7 @@ uv run python src/audiolm/asr_preprocessing.py \
     --text_column='text' \
     --audio_processor='facebook/w2v-bert-2.0' \
     --text_tokenizer='facebook/wav2vec2-base-960h'
+    --language='en' \
     --max_duration=30.0 \
     --output_dir='asr_dataset_english' \
     --sampling_rate=16000
@@ -22,6 +23,7 @@ uv run python src/audiolm/asr_preprocessing.py \
     --text_column='transkription' \
     --audio_processor='facebook/w2v-bert-2.0' \
     --text_tokenizer='facebook/wav2vec2-base-960h' \
+    --language='de' \
     --max_duration=30.0 \
     --output_dir='asr_dataset_german' \
     --sampling_rate=16000

@@ -3,7 +3,7 @@ Preprocessing audio datasets for STT and TTS tasks.:
 
 Output format:
     Dataset({
-        features: ['input_features', 'labels', 'input_length'],
+        features: ['input_features', 'labels', 'input_length', 'language'],
         num_rows: <N>
     })
 
@@ -11,7 +11,7 @@ Output format:
 
 import torch
 from transformers import AutoProcessor, Wav2Vec2CTCTokenizer, Wav2Vec2BertModel
-from datasets import load_dataset, concatenate_datasets, Audio
+from datasets import load_dataset, Audio
 import argparse
 
 
@@ -23,11 +23,13 @@ parser.add_argument("--text_column", type=str, default="text", help="Name of the
 parser.add_argument("--audio_processor", type=str, default="facebook/w2v-bert-2.0",
                     help="Pretrained model name for processor.")
 parser.add_argument("--text_tokenizer", type=str, default="facebook/wav2vec2-base-960h")
+parser.add_argument("--language", type=str, default=None, help="Language code to add to each sample.")
 parser.add_argument("--max_duration", type=float, default=30.0, help="Maximum audio duration in seconds.")
 parser.add_argument("--sampling_rate", type=int, default=16000, help="Target sampling rate for audio.")
 parser.add_argument("--output_dir", type=str, default="./preprocessed/combined",
                     help="Output directory to save the preprocessed dataset.")
 args = parser.parse_args()
+
 
 
 def prepare_dataset(batch, model, audio_processor, text_tokenizer):
@@ -67,9 +69,10 @@ def make_asr_dataset(args: argparse.Namespace) -> None:
     dataset = dataset.map(lambda batch: prepare_dataset(batch, model, audio_processor, text_tokenizer), remove_columns=dataset.column_names)
 
     dataset = filter_audio_length(dataset, duration_threshold=args.max_duration)
-
+    dataset = dataset.map(lambda _: {"language": args.language})
     dataset.save_to_disk(args.output_dir)
     print(f"Saved {len(dataset)} samples → {args.output_dir}")
+    print("dataset output format:\n", dataset)
 
 make_asr_dataset(args=args)
 
