@@ -11,25 +11,27 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "datasets>=4.4.1",
+    "safetensors>=0.7.0",
+    "transformers>=5.2.0",
 ]
 
 [project.optional-dependencies]
 cpu = [
-    "torch>=2.9.0"
+    "torch==2.4.1"
 ]
-gpu128 = [
-    "torch>=2.9.0"
+gpu118 = [
+    "torch==2.4.1"
 ]
-gpu126 = [
-    "torch>=2.9.0"
+gpu121 = [
+    "torch==2.4.1"
 ]
 
 [tool.uv]
 conflicts = [
     [
         {extra = "cpu"},
-        {extra = "gpu128"},
-        {extra = "gpu126"},
+        {extra = "gpu118"},
+        {extra = "gpu121"},
     ]
 ]
 
@@ -37,13 +39,18 @@ conflicts = [
 requires = ["uv_build>=0.9.8,<0.10.0"]
 build-backend = "uv_build"
 
+[dependency-groups]
+dev = [
+    "typeguard>=4.4.4",
+]
+
 [tool.uv.sources]
 audiolm = { path = "src" }
 scripts = { path = "." }
 torch = [
-    {index = "pytorch-cpu", extra = "cpu"}, # intel cpu
-    {index = "pytorch-gpu126", extra = "gpu126"}, # CoLi Cluster
-    {index = "pytorch-gpu128", extra = "gpu128"}, # CoLi Cluster
+    {index = "pytorch-cpu", extra = "cpu"}, # intel / amd cpu (Apple silicon untested)
+    {index = "pytorch-gpu121", extra = "gpu121"}, # jones@lst
+    {index = "pytorch-gpu118", extra = "gpu118"}, # jones@lst
 
 ]
 
@@ -57,11 +64,11 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [[tool.uv.index]]
-name = "pytorch-gpu126"
-url = "https://download.pytorch.org/whl/cu126"
+name = "pytorch-gpu121"
+url = "https://download.pytorch.org/whl/cu121"
 explicit = true
 
 [[tool.uv.index]]
-name = "pytorch-gpu128"
-url = "https://download.pytorch.org/whl/cu128"
+name = "pytorch-gpu118"
+url = "https://download.pytorch.org/whl/cu118"
 explicit = true
