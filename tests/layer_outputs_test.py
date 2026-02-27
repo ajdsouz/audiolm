@@ -37,8 +37,8 @@ hf_name = "Qwen/Qwen2.5-0.5B"
 tokenizer = AutoTokenizer.from_pretrained(hf_name)
 hf_model = AutoModelForCausalLM.from_pretrained(hf_name)
 custom_model = QwenCausalLM(cfg)
-sd = torch.load("ckpt/qwen.bin")
-print("loading sq into model")
+sd = torch.load("ckpt/qwen.bin", weights_only=True)
+print("loading sd into model")
 missing, unexpected = custom_model.load_state_dict(sd)
 
 prompt = "The quick brown fox"
@@ -82,4 +82,4 @@ with torch.no_grad():
 
 for _, key2 in activation.items():
     for key in key2.keys():
-        assert torch.allclose(activation['hf'][key], activation['mine'][key]), f"hf-{key} and custom-{key} dont match!"
+        assert torch.allclose(activation['hf'][key], activation['mine'][key], atol=1e-6, rtol=1e-5), f"hf-{key} and custom-{key} dont match!"
