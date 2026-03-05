@@ -7,6 +7,11 @@ import torch.nn.functional as F
 
 class QwenModel(nn.Module):
     def __init__(self, config: QwenConfig):
+        """Qwen Model
+
+        Args:
+            config (QwenConfig): Model Config
+        """
         super().__init__()
         self.embed_tokens = nn.Embedding(num_embeddings=config.vocab_size, embedding_dim=config.d_model, padding_idx=config.pad_token_id)
         self.layers = nn.ModuleList(
@@ -27,6 +32,11 @@ class QwenModel(nn.Module):
     
 class QwenCausalLM(nn.Module):
     def __init__(self, config: QwenConfig):
+        """Qwen2.5 Causal LM
+
+        Args:
+            config (QwenConfig): Model Config
+        """
         super().__init__()
         self.config = config
         self.model = QwenModel(config=config)

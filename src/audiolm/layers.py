@@ -39,6 +39,12 @@ class QwenRMSNorm(nn.Module):
 
 class QwenMLP(nn.Module):
     def __init__(self, config: QwenConfig):
+        """
+        Implements MLP in Qwen2.5 / Qwen3
+
+        Args:
+            config (QwenConfig): Model Config
+        """
         super().__init__()
         self.up_proj: nn.Linear = nn.Linear(in_features=config.d_model, out_features=config.d_ffn, bias=False)
         self.gate_proj: nn.Linear = nn.Linear(in_features=config.d_model, out_features=config.d_ffn, bias=False)
@@ -52,6 +58,12 @@ class QwenMLP(nn.Module):
     
 class QwenRoPE(nn.Module):
     def __init__(self, config: QwenConfig):
+        """
+        Implements Rotary Position Embeddings for Qwen2.5 / Qwen3
+
+        Args:
+            config (QwenConfig): Model Config
+        """
         super().__init__()
         self.base = config.rope_theta
         self.dim = config.d_model // config.n_heads
@@ -62,12 +74,13 @@ class QwenRoPE(nn.Module):
         self.register_buffer("inv_freq", inv_freq, persistent=False)
 
     @torch.no_grad()
-    def forward(self, x: torch.Tensor, position_ids: torch.LongTensor):
+    def forward(self, x: torch.Tensor, position_ids: torch.LongTensor) -> tuple[torch.Tensor, torch.Tensor]:
 
         # [f] -> [1, f, 1] -> [B, f, 1]
-        expanded_inv_freq = self.inv_freq[None, :, None].float().expand(position_ids.shape[0], -1, -1).to(x.device)
+        # expanded_inv_freq = self.inv_freq[None, :, None].float().expand(position_ids.shape[0], -1, -1).to(x.device)
+        expanded_inv_freq = self.inv_freq[None, :, None].float().expand(position_ids.shape[0], -1, -1) 
         expanded_position_ids = position_ids[:, None, :].float() # [B, S] -> [B, 1, S]
-        with maybe_autocast(device_type=x.device.type, dtype=torch.float32, enabled=False):
+        with maybe_autocast(device_type=x.device.type, dtype=torch.float32, enabled=False): # PRECISION-PROBLEM?
             freqs = (expanded_inv_freq.float() @ expanded_position_ids.float()).transpose(1, 2)
             emb = torch.cat((freqs, freqs), dim=-1)
             cos = emb.cos()
@@ -127,6 +140,13 @@ class QwenAttention(nn.Module):
 
 class QwenDecoderLayer(nn.Module):
     def __init__(self, config: QwenConfig, layer_idx: int):
+        """
+        Qwen2.5 Decoder layer
+
+        Args:
+            config (QwenConfig): Model Config
+            layer_idx (int): index of layer to be used for caching
+        """
         super().__init__()
         self.config = config
         self.self_attn = QwenAttention(config=config, layer_idx=layer_idx)
@@ -144,7 +164,7 @@ class QwenDecoderLayer(nn.Module):
                 position_embedding: tuple[torch.Tensor, torch.Tensor] | None = None
                 ) -> torch.Tensor:
         
-        # TODO Experiment with PrefixLM masking (stage 1) and then with block sparse attention
+        # TODO: Experiment with PrefixLM masking (stage 1) and then with block sparse attention
         residual = x
         x = self.input_layernorm(x)
         x = self.self_attn(x, mask, position_embedding)
