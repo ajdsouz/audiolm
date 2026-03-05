@@ -29,10 +29,10 @@ missing, unexpected = model.load_state_dict(sd)
 
 print("loaded weights! starting generation :)")
 
-prefix = "The world's biggest statue "
+prefix = "A long time ago"
 input_ids = tokenizer(prefix, return_tensors="pt").input_ids
-MAX_NEW_TOKENS = 5
-TEMPERATURE = 1
+MAX_NEW_TOKENS = 15
+TEMPERATURE = 0
 
 y = model.generate(input_ids, max_new_tokens=MAX_NEW_TOKENS, temperature=TEMPERATURE, eos_token_id=tokenizer.eos_token_id)
 print(tokenizer.decode(y[0].tolist()))

@@ -77,9 +77,8 @@ class QwenRoPE(nn.Module):
     def forward(self, x: torch.Tensor, position_ids: torch.LongTensor) -> tuple[torch.Tensor, torch.Tensor]:
 
         # [f] -> [1, f, 1] -> [B, f, 1]
-        # expanded_inv_freq = self.inv_freq[None, :, None].float().expand(position_ids.shape[0], -1, -1).to(x.device)
-        expanded_inv_freq = self.inv_freq[None, :, None].float().expand(position_ids.shape[0], -1, -1) 
-        expanded_position_ids = position_ids[:, None, :].float() # [B, S] -> [B, 1, S]
+        expanded_inv_freq = self.inv_freq[None, :, None].float().to(x.device).expand(position_ids.shape[0], -1, -1) # inv_freq is a buffer and is by default stored on cpu
+        expanded_position_ids = position_ids[:, None, :].float().to(x.device) # [B, S] -> [B, 1, S]
         with maybe_autocast(device_type=x.device.type, dtype=torch.float32, enabled=False): # PRECISION-PROBLEM?
             freqs = (expanded_inv_freq.float() @ expanded_position_ids.float()).transpose(1, 2)
             emb = torch.cat((freqs, freqs), dim=-1)

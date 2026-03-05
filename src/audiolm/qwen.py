@@ -80,7 +80,7 @@ class QwenCausalLM(nn.Module):
             next_token_logits = logits[:, -1, :]  # take the last token's logits
 
             # Apply temperature
-            next_token_logits = next_token_logits / temperature
+            next_token_logits = next_token_logits / max(temperature, 1e-8) # avoid division by 0 
 
             # Top-k filtering
             if top_k is not None:
