@@ -13,6 +13,7 @@ dependencies = [
     "beartype>=0.22.9",
     "datasets==2.21.0",
     "librosa>=0.11.0",
+    "sacrebleu>=2.6.0",
     "scikit-learn>=1.8.0",
     "soundfile>=0.13.1",
     "speechtokenizer>=1.0.1",
