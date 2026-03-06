@@ -6,6 +6,7 @@ from tqdm import tqdm
 import dataclasses
 import torch
 import torch.nn as nn
+import lightning as L
 
 
 class Trainer:
@@ -22,19 +23,22 @@ class Trainer:
             optimizer: torch.optim.Optimizer,
             scheduler: torch.optim.lr_scheduler.LRScheduler | None = None,
             # compile: bool = True,
-            device: str | None = "cuda",
+            device: str = "cuda",
     ) -> None:
-        self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = model.to(self.device)
+        L.seed_everything(1337)
+        self.fabric = L.Fabric(accelerator=device, precision='16-mixed')
+
+        # self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
+        # self.model = model.to(self.device)
         self.loss_fn = loss_fn
-        self.optimizer = optimizer
+        # self.optimizer = optimizer
         self.scheduler = scheduler
         self.compile = compile
         self.checkpoint_dir = checkpoint_dir
         self.config = config
         self.epoch: int = 0
         self.global_step: int = 0
-
+        self.model, self.optimizer = self.fabric.setup(model, optimizer)
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
 
@@ -57,8 +61,8 @@ class Trainer:
 
 
     def _common_step(self, batch) -> torch.Tensor:
-        input_ids = batch['input_ids'].to(self.device)
-        attention_mask = batch['attention_mask'].to(self.device)
+        input_ids = batch['input_ids']
+        attention_mask = batch['attention_mask']
         inputs = input_ids[:,:-1]
         attention_mask = attention_mask[:, :-1]
         targets = input_ids[:,1:]
@@ -66,8 +70,9 @@ class Trainer:
         targets = torch.where(
             attention_mask == 1,
             targets,
-            torch.tensor(-100, device=self.device)
+            torch.tensor(-100, device=targets.device)
         )
+
         outputs = self.model(inputs, attention_mask)
         loss = self.loss_fn(
             outputs.view(-1, outputs.size(-1)), targets.view(-1)
@@ -96,7 +101,7 @@ class Trainer:
             grad_accumulation_steps: int = 1,
             grad_clip_max_norm: float = 1.0
     ) -> None:
-        
+        train_dataloader, val_dataloader = self.fabric.setup_dataloaders(train_dataloader, val_dataloader)
         for epoch in range(self.epoch, num_epochs):
             self.epoch = epoch
             total_loss = 0.0
@@ -114,12 +119,14 @@ class Trainer:
                     
                     loss = self._common_step(batch)
                     loss_scaled = loss / grad_accumulation_steps
-                    loss_scaled.backward()
+                    #loss_scaled.backward()
+                    self.fabric.backward(loss)
                     
 
                     if ((idx + 1) % grad_accumulation_steps == 0) or (idx + 1 == len(train_dataloader)):
-                        torch.nn.utils.clip_grad_norm_(
-                            self.model.parameters(),
+                        self.fabric.clip_gradients(
+                            self.model,
+                            self.optimizer,
                             max_norm=grad_clip_max_norm
                         )
                         
@@ -157,10 +164,10 @@ class Trainer:
 
     def save_checkpoint(self):
         save_path = f"{self.checkpoint_dir}/checkpoint_epoch-{self.epoch}-step-{self.global_step}.pth"
-        torch.save({
+        self.fabric.save(state={
             "epoch": self.epoch,
             "global_step": self.global_step,
             "model": self.model.state_dict(),
             "optimizer": self.optimizer.state_dict(),
             "scheduler": self.scheduler.state_dict() if self.scheduler else None,
-        }, save_path)
+        }, path=save_path)

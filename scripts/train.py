@@ -21,6 +21,7 @@ parser.add_argument("--wandb_run_name", type=str)
 parser.add_argument("--lr", type=float)
 parser.add_argument("--device", type=str)
 parser.add_argument("--num_epochs", type=int)
+parser.add_argument("--batch_size", type=int)
 parser.add_argument("--eval_every", type=int)
 parser.add_argument("--save_every", type=int)
 parser.add_argument("--grad_accumulation_steps", type=int)
@@ -63,8 +64,8 @@ ds.set_format("torch", columns=["input_ids", "attention_mask"])
 train_ds = ds['train']
 val_ds = ds['validation']
 
-train_dl = DataLoader(train_ds, batch_size=2, shuffle=True)
-valid_dl = DataLoader(val_ds, batch_size=1, shuffle=False)
+train_dl = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True)
+valid_dl = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False)
 
 loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
 optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)

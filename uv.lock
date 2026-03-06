@@ -170,6 +170,7 @@ dependencies = [
 
 [package.optional-dependencies]
 cpu = [
+    { name = "lightning" },
     { name = "torch", version = "2.4.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(python_full_version < '3.13' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu') or (python_full_version >= '3.13' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (python_full_version >= '3.13' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (platform_machine != 'aarch64' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (platform_machine != 'aarch64' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (platform_machine != 'aarch64' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (platform_python_implementation != 'CPython' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (platform_python_implementation != 'CPython' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (platform_python_implementation != 'CPython' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-cpu') or (sys_platform != 'linux' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (sys_platform != 'linux' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (sys_platform != 'linux' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (extra != 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121')" },
     { name = "torch", version = "2.4.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(python_full_version >= '3.13' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu') or (python_full_version < '3.13' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (python_full_version < '3.13' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-7-audiolm-cpu') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (extra != 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121')" },
 ]
@@ -188,6 +189,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "datasets", specifier = ">=4.4.1" },
+    { name = "lightning", marker = "extra == 'cpu'", specifier = "==2.5.4" },
     { name = "safetensors", specifier = ">=0.7.0" },
     { name = "torch", marker = "extra == 'cpu'", specifier = "==2.4.1", index = "https://download.pytorch.org/whl/cpu", conflict = { package = "audiolm", extra = "cpu" } },
     { name = "torch", marker = "extra == 'gpu118'", specifier = "==2.4.1", index = "https://download.pytorch.org/whl/cu118", conflict = { package = "audiolm", extra = "gpu118" } },
@@ -563,6 +565,40 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/df/bf/f7da0350254c0ed7c72f3e33cef02e048281fec7ecec5f032d4aac52226b/jinja2-3.1.6.tar.gz", hash = "sha256:0137fb05990d35f1275a587e9aee6d56da821fc83491a0fb838183be43f66d6d", size = 245115, upload-time = "2025-03-05T20:05:02.478Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl", hash = "sha256:85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67", size = 134899, upload-time = "2025-03-05T20:05:00.369Z" },
+]
+
+[[package]]
+name = "lightning"
+version = "2.5.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "fsspec", extra = ["http"], marker = "extra == 'extra-7-audiolm-cpu' or (extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121')" },
+    { name = "lightning-utilities" },
+    { name = "packaging" },
+    { name = "pytorch-lightning" },
+    { name = "pyyaml" },
+    { name = "torch", version = "2.4.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(python_full_version < '3.13' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu') or (python_full_version >= '3.13' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (python_full_version >= '3.13' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (platform_machine != 'aarch64' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (platform_machine != 'aarch64' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (platform_machine != 'aarch64' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (platform_python_implementation != 'CPython' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (platform_python_implementation != 'CPython' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (platform_python_implementation != 'CPython' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-cpu') or (sys_platform != 'linux' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (sys_platform != 'linux' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (sys_platform != 'linux' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (extra != 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121')" },
+    { name = "torch", version = "2.4.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(python_full_version >= '3.13' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu') or (python_full_version < '3.13' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (python_full_version < '3.13' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-7-audiolm-cpu') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (extra != 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121')" },
+    { name = "torchmetrics" },
+    { name = "tqdm" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d1/da/2e0bb05c037db033e36916654479678d97cba8e05f2fd8abbed558cff957/lightning-2.5.4.tar.gz", hash = "sha256:cec9459a356117f11c501b591fe80f327947614fc345dc6b6c9f8d4d373f214e", size = 637370, upload-time = "2025-08-29T11:45:19.06Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3c/7e/bff6e2846da7b7f6b1ac67b96dbc7148664d69f9f2b12e11fd6b0d7cda01/lightning-2.5.4-py3-none-any.whl", hash = "sha256:49fdc84df9d809e4f396ab38a5d327df725fe6dd9303473c49e52cba4fbdcc2b", size = 825219, upload-time = "2025-08-29T11:45:16.845Z" },
+]
+
+[[package]]
+name = "lightning-utilities"
+version = "0.15.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "packaging" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f1/45/7fa8f56b17dc0f0a41ec70dd307ecd6787254483549843bef4c30ab5adce/lightning_utilities-0.15.3.tar.gz", hash = "sha256:792ae0204c79f6859721ac7f386c237a33b0ed06ba775009cb894e010a842033", size = 33553, upload-time = "2026-02-22T14:48:53.348Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/25/f4/ead6e0e37209b07c9baa3e984ccdb0348ca370b77cea3aaea8ddbb097e00/lightning_utilities-0.15.3-py3-none-any.whl", hash = "sha256:6c55f1bee70084a1cbeaa41ada96e4b3a0fea5909e844dd335bd80f5a73c5f91", size = 31906, upload-time = "2026-02-22T14:48:52.488Z" },
 ]
 
 [[package]]
@@ -1373,6 +1409,26 @@ wheels = [
 ]
 
 [[package]]
+name = "pytorch-lightning"
+version = "2.6.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "fsspec", extra = ["http"], marker = "extra == 'extra-7-audiolm-cpu' or (extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121')" },
+    { name = "lightning-utilities" },
+    { name = "packaging" },
+    { name = "pyyaml" },
+    { name = "torch", version = "2.4.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(python_full_version < '3.13' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu') or (python_full_version >= '3.13' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (python_full_version >= '3.13' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (platform_machine != 'aarch64' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (platform_machine != 'aarch64' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (platform_machine != 'aarch64' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (platform_python_implementation != 'CPython' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (platform_python_implementation != 'CPython' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (platform_python_implementation != 'CPython' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-cpu') or (sys_platform != 'linux' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (sys_platform != 'linux' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (sys_platform != 'linux' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (extra != 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121')" },
+    { name = "torch", version = "2.4.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(python_full_version >= '3.13' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu') or (python_full_version < '3.13' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (python_full_version < '3.13' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-7-audiolm-cpu') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (extra != 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121')" },
+    { name = "torchmetrics" },
+    { name = "tqdm" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8b/ac/ebd5f6f58691cbd4f73836e43e1727f3814311b960c41f88e259606ca2b2/pytorch_lightning-2.6.1.tar.gz", hash = "sha256:ba08f8901cf226fcca473046ad9346f414e99117762dc869c76e650d5b3d7bdc", size = 665563, upload-time = "2026-01-30T14:59:11.636Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0e/93/c8c361bf0a2fe50f828f32def460e8b8a14b93955d3fd302b1a9b63b19e4/pytorch_lightning-2.6.1-py3-none-any.whl", hash = "sha256:1f8118567ec829e3055f16cf1aa320883a86a47c836951bfd9dcfa34ec7ffd59", size = 857273, upload-time = "2026-01-30T14:59:10.141Z" },
+]
+
+[[package]]
 name = "pytz"
 version = "2025.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1749,6 +1805,22 @@ dependencies = [
 wheels = [
     { url = "https://download.pytorch.org/whl/cu121/torch-2.4.1%2Bcu121-cp312-cp312-linux_x86_64.whl", hash = "sha256:ab491610b15551e08da74bab29d0933e6bf10bab44fb7d4b1328f1e845c05a53" },
     { url = "https://download.pytorch.org/whl/cu121/torch-2.4.1%2Bcu121-cp312-cp312-win_amd64.whl", hash = "sha256:b30faf3224697eaed131939690e8877b05b4d4cb6da5b12cfdcba3d742e9afd0" },
+]
+
+[[package]]
+name = "torchmetrics"
+version = "1.8.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "lightning-utilities" },
+    { name = "numpy" },
+    { name = "packaging" },
+    { name = "torch", version = "2.4.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(python_full_version < '3.13' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu') or (python_full_version >= '3.13' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (python_full_version >= '3.13' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (platform_machine != 'aarch64' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (platform_machine != 'aarch64' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (platform_machine != 'aarch64' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (platform_python_implementation != 'CPython' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (platform_python_implementation != 'CPython' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (platform_python_implementation != 'CPython' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-cpu') or (sys_platform != 'linux' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (sys_platform != 'linux' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (sys_platform != 'linux' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (extra != 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121')" },
+    { name = "torch", version = "2.4.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(python_full_version >= '3.13' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu') or (python_full_version < '3.13' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (python_full_version < '3.13' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-7-audiolm-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-7-audiolm-cpu') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu121') or (sys_platform == 'darwin' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121') or (extra != 'extra-7-audiolm-cpu' and extra == 'extra-7-audiolm-gpu118' and extra == 'extra-7-audiolm-gpu121')" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/85/2e/48a887a59ecc4a10ce9e8b35b3e3c5cef29d902c4eac143378526e7485cb/torchmetrics-1.8.2.tar.gz", hash = "sha256:cf64a901036bf107f17a524009eea7781c9c5315d130713aeca5747a686fe7a5", size = 580679, upload-time = "2025-09-03T14:00:54.077Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/02/21/aa0f434434c48490f91b65962b1ce863fdcce63febc166ca9fe9d706c2b6/torchmetrics-1.8.2-py3-none-any.whl", hash = "sha256:08382fd96b923e39e904c4d570f3d49e2cc71ccabd2a94e0f895d1f0dac86242", size = 983161, upload-time = "2025-09-03T14:00:51.921Z" },
 ]
 
 [[package]]
