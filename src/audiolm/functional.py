@@ -3,6 +3,10 @@ import torch
 from torch import Tensor 
 import torch.nn.functional as F 
 from contextlib import nullcontext
+from datasets import load_dataset
+from sacrebleu import BLEU
+from langdetect import detect
+
 
 def attention(
         query: Tensor, 
@@ -127,8 +131,60 @@ def repeat_kv(hidden_states: torch.Tensor, n_rep: int) -> torch.Tensor:
         return hidden_states
     hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
     return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
- 
- 
- 
- 
- 
+def compute_bleu(
+    output_ids: Tensor,
+    input_texts: list[str],
+    tokenizer,
+    translation_token: str = "<translation>",
+    dataset_path: str = "Darth Vader/german-english-parallel-text",
+    split: str = "validation",
+) -> float:
+    """
+    Compute BLEU score on translation validation set.
+    Only evaluates samples that start with the translation task token.
+    Matches predictions to references via English input text.
+
+    Args:
+        output_ids: generated token ids from model [B, T]
+        input_texts: list of input texts per sample [B]
+        tokenizer: text tokenizer for decoding output_ids
+        translation_token: task token that indicates translation task
+        dataset_path: HuggingFace dataset path
+        split: dataset split to use
+
+    Returns:
+        float: BLEU score
+    """
+    # load dataset
+    dataset = load_dataset(dataset_path, split=split)
+
+    bleu = BLEU()
+    predictions = []
+    filtered_references = []
+
+    for ids, input_text in zip(output_ids, input_texts):
+        decoded = tokenizer.decode(ids, skip_special_tokens=True)
+
+        if not decoded.startswith(translation_token):
+            continue
+
+        detected = detect(input_text)
+        source_lang = "English" if detected == "en" else "German"
+        target_lang = "German" if detected == "en" else "English"
+
+        # find respective reference in dataset
+        ref = next(
+            (s[target_lang] for s in dataset if s[source_lang] == input_text),
+            None
+        )
+
+        if ref is None:
+            continue
+
+        pred = decoded[len(translation_token):].strip()
+        predictions.append(pred)
+        filtered_references.append(ref)
+    if not predictions:
+        return 0.0
+    score = bleu.corpus_score(predictions, [filtered_references])
+    return score.score
