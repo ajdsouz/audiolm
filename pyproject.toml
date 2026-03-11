@@ -11,6 +11,8 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "datasets>=4.4.1",
+    "evaluate>=0.4.6",
+    "jiwer>=4.0.0",
     "langdetect>=1.0.9",
     "pytest>=9.0.2",
     "safetensors>=0.7.0",

@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from contextlib import nullcontext
 from sacrebleu import BLEU
 from transformers import PreTrainedTokenizer
+from evaluate import load
 
 
 
@@ -144,3 +145,18 @@ def compute_bleu(predicted: torch.Tensor, ground_truth: torch.Tensor, tokenizer:
 
     score = BLEU().corpus_score(predictions, [references])
     return score.score
+
+def compute_wer(predicted: torch.Tensor, ground_truth: torch.Tensor, tokenizer: PreTrainedTokenizer)    -> float:
+    """
+    Compute WER score on translation validation set.
+    Returns:
+        float: WER score
+    """
+    wer_metric = load("wer")
+
+    predictions = tokenizer.batch_decode(predicted, skip_special_tokens=True)
+    references = tokenizer.batch_decode(ground_truth, skip_special_tokens=True)
+
+    score = wer_metric.compute(predictions=predictions, references=references)
+
+    return score
