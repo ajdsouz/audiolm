@@ -26,8 +26,8 @@ class Trainer:
             device: str = "cuda",
     ) -> None:
         L.seed_everything(1337)
-        self.fabric = L.Fabric(accelerator=device, precision='16-mixed')
-
+        self.fabric = L.Fabric(accelerator=device, precision='bf16-mixed')
+        self.fabric.launch()
         # self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
         # self.model = model.to(self.device)
         self.loss_fn = loss_fn
@@ -38,7 +38,10 @@ class Trainer:
         self.config = config
         self.epoch: int = 0
         self.global_step: int = 0
+        print("Preparing Model & Optimizer")
         self.model, self.optimizer = self.fabric.setup(model, optimizer)
+        
+        print("Model and Optimizer prepared!")
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
 
@@ -90,6 +93,7 @@ class Trainer:
 
         return total_loss / len(val_dataloader)
 
+    # def _compute_metrics()
 
     def train(
             self, 
@@ -101,7 +105,9 @@ class Trainer:
             grad_accumulation_steps: int = 1,
             grad_clip_max_norm: float = 1.0
     ) -> None:
+        print("Preparing Dataloaders!")
         train_dataloader, val_dataloader = self.fabric.setup_dataloaders(train_dataloader, val_dataloader)
+        print("Dataloader Preperation Complete. Starting Training!")
         for epoch in range(self.epoch, num_epochs):
             self.epoch = epoch
             total_loss = 0.0
