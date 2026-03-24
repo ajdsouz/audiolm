@@ -62,7 +62,7 @@ class Trainer:
             name=wandb_run_name,
             config = dataclasses.asdict(config)
         )
-
+        self.logger.info("============= TRAINING STARTED ==============")
 
     def _common_step(self, batch) -> torch.Tensor:
         input_ids = batch['input_ids']
@@ -77,8 +77,11 @@ class Trainer:
             torch.tensor(-100, device=targets.device)
         )
         
-        outputs = self.model(inputs, attention_mask)
+        outputs, hidden_state = self.model(inputs, attention_mask)
+        outputs = outputs.clamp(min=-10.0, max=10.0)
+        outputs = torch.nan_to_num(outputs, nan=-10.0, posinf=10.0, neginf=-10.0)
         self.logger.info(f"[LOGITS] Step {self.global_step} | min={outputs.min().item():.2f} max={outputs.max().item():.2f} mean={outputs.mean().item():.3f} std={outputs.std().item():.3f}")
+        self.logger.info(f"[HIDDEN STATES] Step {self.global_step} | min={hidden_state.min().item():.2f} max={hidden_state.max().item():.2f} mean={hidden_state.mean().item():.3f} std={hidden_state.std().item():.3f}")
         loss = self.loss_fn(
             outputs.view(-1, outputs.size(-1)), targets.view(-1)
         )

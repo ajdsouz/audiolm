@@ -45,10 +45,10 @@ class QwenCausalLM(nn.Module):
         self.lm_head.weight = self.model.embed_tokens.weight
         # print(f"NUMBER OF PARAMETERS IN QWEN 2.5 0.5B IS {self.count_params()} i.e. {self.count_params() / 1e6}")
 
-    def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor | None = None)->torch.Tensor:
+    def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor | None = None)->tuple[torch.Tensor, torch.Tensor]:
         x = self.model(input_ids, attention_mask)
         logits = self.lm_head(x)
-        return logits
+        return logits, x
 
     @torch.no_grad()
     def generate(
