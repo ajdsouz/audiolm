@@ -24,16 +24,17 @@ class Trainer:
             scheduler: torch.optim.lr_scheduler.LRScheduler | None = None,
             # compile: bool = True,
             device: str = "cuda",
+            precision: str = "32"
     ) -> None:
         L.seed_everything(1337)
-        self.fabric = L.Fabric(accelerator=device, precision='bf16-mixed')
+        self.fabric = L.Fabric(accelerator=device, precision=precision)
         self.fabric.launch()
         # self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
         # self.model = model.to(self.device)
         self.loss_fn = loss_fn
         # self.optimizer = optimizer
         self.scheduler = scheduler
-        self.compile = compile
+        # self.compile = compile
         self.checkpoint_dir = checkpoint_dir
         self.config = config
         self.epoch: int = 0

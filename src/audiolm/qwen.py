@@ -14,6 +14,7 @@ class QwenModel(nn.Module):
         """
         super().__init__()
         self.embed_tokens = nn.Embedding(num_embeddings=config.vocab_size, embedding_dim=config.d_model, padding_idx=config.pad_token_id)
+        nn.init.normal_(self.embed_tokens.weight, mean=0.0, std=0.02)
         self.layers = nn.ModuleList(
             [QwenDecoderLayer(config=config, layer_idx=layer_idx) for layer_idx in range(config.n_layers)]
         )
