@@ -124,20 +124,35 @@ class Trainer:
                     tokens_seen += batch['input_ids'].numel() # store no. of tokens model has seen in each batch
                     self.model.train()
                     
-                    loss = self._common_step(batch)
-                    loss_scaled = loss / grad_accumulation_steps
-                    #loss_scaled.backward()
-                    self.fabric.backward(loss)
+                    is_accumulating = ((idx + 1) % grad_accumulation_steps == 0) or (idx + 1 == len(train_dataloader))
+
+                    with self.fabric.no_backward_sync(self.model, enabled=is_accumulating):
+                        loss = self._common_step(batch)
+
+                        if not torch.isfinite(loss).all():
+                            print(f"Non-finite loss at step {self.global_step} : {loss.item()}")
+                            self.logger.info(f"Non-finite loss at step {self.global_step} : {loss.item()}")
+                            self.optimizer.zero_grad(set_to_none=True)
+                            pbar.update(1)
+
+                        loss_scaled = loss / grad_accumulation_steps
+                        #loss_scaled.backward()
+                        self.fabric.backward(loss)
                     
 
-                    if ((idx + 1) % grad_accumulation_steps == 0) or (idx + 1 == len(train_dataloader)):
-                        self.fabric.clip_gradients(
+                    if not is_accumulating:
+                        grad_norm = self.fabric.clip_gradients(
                             self.model,
                             self.optimizer,
                             max_norm=grad_clip_max_norm
                         )
+
+                        if torch.isfinite(grad_norm):
+                            self.optimizer.step()
+
                         
-                        self.optimizer.step()
+                        
+                        # self.optimizer.step()
                         self.optimizer.zero_grad(set_to_none=True)
                         if self.scheduler:
                             self.scheduler.step()

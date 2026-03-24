@@ -66,8 +66,8 @@ ds.set_format("torch", columns=["input_ids", "attention_mask"])
 train_ds = ds['train']
 val_ds = ds['validation']
 
-train_dl = DataLoader(train_ds, batch_size=args.batch_size, pin_memory=True, num_workers=0, shuffle=True)
-valid_dl = DataLoader(val_ds, batch_size=args.batch_size, pin_memory=True, num_workers=0, shuffle=False)
+train_dl = DataLoader(train_ds, batch_size=args.batch_size, pin_memory=True, num_workers=2, shuffle=True)
+valid_dl = DataLoader(val_ds, batch_size=args.batch_size, pin_memory=True, num_workers=2, shuffle=False)
 
 loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
 optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
