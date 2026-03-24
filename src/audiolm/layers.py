@@ -169,9 +169,9 @@ class QwenDecoderLayer(nn.Module):
         residual = x
         x = self.input_layernorm(x)
         x = self.self_attn(x, mask, position_embedding)
-        x = x + residual
+        x = 0.5 * x + residual
         residual = x
         x = self.post_attention_layernorm(x)
         x = self.mlp(x)
-        x = x + residual
+        x = 0.75 * x + residual
         return x
