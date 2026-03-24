@@ -125,14 +125,14 @@ class QwenAttention(nn.Module):
         key = repeat_kv(key, n_rep=self.n_groups)
         value = repeat_kv(value, n_rep=self.n_groups)
 
-        # if mask is not None:
-        #     attn_mask = self.causal_mask[:, :, :T, :T] + mask
-        # else:
-        #     attn_mask = self.causal_mask
+        if mask is not None:
+            attn_mask = self.causal_mask[:, :, :T, :T] * mask.unsqueeze(1).unsqueeze(2)
+        else:
+            attn_mask = self.causal_mask
 
-        attn_mask = self.causal_mask[:, :, :T, :T]
+        # attn_mask = self.causal_mask[:, :, :T, :T] * mask
 
-        attention_scores, _ = attention(query=query, key=key, value=value, mask=attn_mask, scale=(self.head_dim**0.5), dropout=self.config.dropout)
+        attention_scores, _ = attention(query=query, key=key, value=value, mask=attn_mask, dropout=self.config.dropout)
         attention_output = merge_heads(attention_scores)
         attention_output = self.o_proj(attention_output)
         return attention_output

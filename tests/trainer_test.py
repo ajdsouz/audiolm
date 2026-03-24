@@ -70,7 +70,7 @@ train_dl = DataLoader(train_ds, batch_size=args.batch_size, pin_memory=True, num
 valid_dl = DataLoader(val_ds, batch_size=args.batch_size, pin_memory=True, num_workers=2, shuffle=False)
 
 loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
-optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, eps=1e-6)
 
 trainer = Trainer(
     config=cfg,
