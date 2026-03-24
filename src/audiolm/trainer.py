@@ -76,8 +76,9 @@ class Trainer:
             targets,
             torch.tensor(-100, device=targets.device)
         )
-
+        
         outputs = self.model(inputs, attention_mask)
+        self.logger.info(f"[LOGITS] Step {self.global_step} | min={outputs.min().item():.2f} max={outputs.max().item():.2f} mean={outputs.mean().item():.3f} std={outputs.std().item():.3f}")
         loss = self.loss_fn(
             outputs.view(-1, outputs.size(-1)), targets.view(-1)
         )
@@ -146,7 +147,8 @@ class Trainer:
                             self.optimizer,
                             max_norm=grad_clip_max_norm
                         )
-
+                        max_grad = max((p.grad.abs().max().item() for p in self.model.parameters() if p.grad is not None), default=0.0)
+                        self.logger.info(f"[GRAD] Step {self.global_step} | max abs grad = {max_grad:.4f}")    
                         if torch.isfinite(grad_norm):
                             self.optimizer.step()
 
