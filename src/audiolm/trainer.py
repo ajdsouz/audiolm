@@ -6,6 +6,7 @@ from tqdm import tqdm
 import dataclasses
 import torch
 import torch.nn as nn
+import lightning as L
 
 
 class Trainer:
@@ -22,19 +23,26 @@ class Trainer:
             optimizer: torch.optim.Optimizer,
             scheduler: torch.optim.lr_scheduler.LRScheduler | None = None,
             # compile: bool = True,
-            device: str | None = "cuda",
+            device: str = "cuda",
+            precision: str = "32"
     ) -> None:
-        self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = model.to(self.device)
+        L.seed_everything(1337)
+        self.fabric = L.Fabric(accelerator=device, precision=precision)
+        self.fabric.launch()
+        # self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
+        # self.model = model.to(self.device)
         self.loss_fn = loss_fn
-        self.optimizer = optimizer
+        # self.optimizer = optimizer
         self.scheduler = scheduler
-        self.compile = compile
+        # self.compile = compile
         self.checkpoint_dir = checkpoint_dir
         self.config = config
         self.epoch: int = 0
         self.global_step: int = 0
-
+        print("Preparing Model & Optimizer")
+        self.model, self.optimizer = self.fabric.setup(model, optimizer)
+        
+        print("Model and Optimizer prepared!")
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
 
@@ -54,21 +62,27 @@ class Trainer:
             name=wandb_run_name,
             config = dataclasses.asdict(config)
         )
-
+        self.logger.info("============= TRAINING STARTED ==============")
 
     def _common_step(self, batch) -> torch.Tensor:
-        input_ids = batch['input_ids'].to(self.device)
-        attention_mask = batch['attention_mask'].to(self.device)
+        input_ids = batch['input_ids']
+        attention_mask = batch['attention_mask']
         inputs = input_ids[:,:-1]
-        attention_mask = attention_mask[:, :-1]
+        attention_mask = attention_mask[:, 1:]
         targets = input_ids[:,1:]
 
         targets = torch.where(
             attention_mask == 1,
             targets,
-            torch.tensor(-100, device=self.device)
+            torch.tensor(-100, device=targets.device)
         )
-        outputs = self.model(inputs, attention_mask)
+        
+        outputs, hidden_state = self.model(inputs, attention_mask)
+        output_ids = torch.argmax(outputs, dim=-1)
+        
+        
+        # self.logger.info(f"[LOGITS] Step {self.global_step} | min={outputs.min().item():.2f} max={outputs.max().item():.2f} mean={outputs.mean().item():.3f} std={outputs.std().item():.3f}")
+        # self.logger.info(f"[HIDDEN STATES] Step {self.global_step} | min={hidden_state.min().item():.2f} max={hidden_state.max().item():.2f} mean={hidden_state.mean().item():.3f} std={hidden_state.std().item():.3f}")
         loss = self.loss_fn(
             outputs.view(-1, outputs.size(-1)), targets.view(-1)
         )
@@ -85,6 +99,7 @@ class Trainer:
 
         return total_loss / len(val_dataloader)
 
+    # def _compute_metrics()
 
     def train(
             self, 
@@ -96,7 +111,9 @@ class Trainer:
             grad_accumulation_steps: int = 1,
             grad_clip_max_norm: float = 1.0
     ) -> None:
-        
+        self.logger.info("Preparing Dataloaders!")
+        train_dataloader, val_dataloader = self.fabric.setup_dataloaders(train_dataloader, val_dataloader)
+        self.logger.info("Dataloader Preperation Complete. Starting Training!")
         for epoch in range(self.epoch, num_epochs):
             self.epoch = epoch
             total_loss = 0.0
@@ -112,18 +129,35 @@ class Trainer:
                     tokens_seen += batch['input_ids'].numel() # store no. of tokens model has seen in each batch
                     self.model.train()
                     
-                    loss = self._common_step(batch)
-                    loss_scaled = loss / grad_accumulation_steps
-                    loss_scaled.backward()
+                    is_update_step = ((idx + 1) % grad_accumulation_steps == 0) or (idx + 1 == len(train_dataloader))
+
+                    with self.fabric.no_backward_sync(self.model, enabled= not is_update_step):
+                        loss = self._common_step(batch)
+
+                        if not torch.isfinite(loss).all():
+                            # print(f"Non-finite loss at step {self.global_step} : {loss.item()}")
+                            self.logger.info(f"Non-finite loss at step {self.global_step} : {loss.item()}")
+                            self.optimizer.zero_grad(set_to_none=True)
+                            pbar.update(1)
+                            continue
+
+                        loss_scaled = loss / grad_accumulation_steps
+                        #loss_scaled.backward()
+                        self.fabric.backward(loss_scaled)
                     
 
-                    if ((idx + 1) % grad_accumulation_steps == 0) or (idx + 1 == len(train_dataloader)):
-                        torch.nn.utils.clip_grad_norm_(
-                            self.model.parameters(),
+                    if is_update_step:
+                        grad_norm = self.fabric.clip_gradients(
+                            self.model,
+                            self.optimizer,
                             max_norm=grad_clip_max_norm
                         )
-                        
-                        self.optimizer.step()
+                        max_grad = max((p.grad.abs().max().item() for p in self.model.parameters() if p.grad is not None), default=0.0)
+                        self.logger.info(f"[GRAD] Step {self.global_step} | max abs grad = {max_grad:.4f}")    
+                        if torch.isfinite(grad_norm):
+                            self.optimizer.step()
+                            
+                        # self.optimizer.step()
                         self.optimizer.zero_grad(set_to_none=True)
                         if self.scheduler:
                             self.scheduler.step()
@@ -157,10 +191,10 @@ class Trainer:
 
     def save_checkpoint(self):
         save_path = f"{self.checkpoint_dir}/checkpoint_epoch-{self.epoch}-step-{self.global_step}.pth"
-        torch.save({
+        self.fabric.save(state={
             "epoch": self.epoch,
             "global_step": self.global_step,
             "model": self.model.state_dict(),
             "optimizer": self.optimizer.state_dict(),
             "scheduler": self.scheduler.state_dict() if self.scheduler else None,
-        }, save_path)
+        }, path=save_path)

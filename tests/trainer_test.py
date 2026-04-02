@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--dataset_path", type=str)
-parser.add_argument("--model_checkpoint", type=str)
+#parser.add_argument("--model_checkpoint", type=str)
 parser.add_argument("--checkpoint_dir", type=str)
 parser.add_argument("--logfile_path", type=str)
 parser.add_argument("--wandb_project_name", type=str)
@@ -20,6 +20,8 @@ parser.add_argument("--wandb_entity", type=str)
 parser.add_argument("--wandb_run_name", type=str)
 parser.add_argument("--lr", type=float)
 parser.add_argument("--device", type=str)
+parser.add_argument("--precision", type=str)
+
 parser.add_argument("--num_epochs", type=int)
 parser.add_argument("--batch_size", type=int)
 parser.add_argument("--eval_every", type=int)
@@ -33,8 +35,8 @@ cfg = QwenConfig(
     block_size=128,
     d_model=896,
     d_ffn=4864,
-    n_layers=24,
-    n_heads=14,
+    n_layers=4,
+    n_heads=4,
     n_kv_heads=2,
     max_positional_embed=32768,
     rmsnorm_eps=1e-06,
@@ -47,16 +49,16 @@ cfg = QwenConfig(
 )
 
 model = QwenCausalLM(cfg)
-state_dict = torch.load(args.model_checkpoint, weights_only=True)
 
-try:
-    missing, unexpected = model.load_state_dict(state_dict)
-    if not missing and not unexpected:
-        print("state dict loaded successfully")
-    else:
-        print("missing keys or unexpected keys were found")
-except Exception as e:
-    print(f"An error occured while loading weights: {e}")
+
+# try:
+#     missing, unexpected = model.load_state_dict(state_dict)
+#     if not missing and not unexpected:
+#         print("state dict loaded successfully")
+#     else:
+#         print("missing keys or unexpected keys were found")
+# except Exception as e:
+#     print(f"An error occured while loading weights: {e}")
 
 
 ds = load_from_disk(args.dataset_path)
@@ -64,11 +66,11 @@ ds.set_format("torch", columns=["input_ids", "attention_mask"])
 train_ds = ds['train']
 val_ds = ds['validation']
 
-train_dl = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True)
-valid_dl = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False)
+train_dl = DataLoader(train_ds, batch_size=args.batch_size, pin_memory=True, num_workers=2, shuffle=True)
+valid_dl = DataLoader(val_ds, batch_size=args.batch_size, pin_memory=True, num_workers=2, shuffle=False)
 
 loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
-optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, eps=1e-6)
 
 trainer = Trainer(
     config=cfg,
@@ -80,7 +82,8 @@ trainer = Trainer(
     model=model,
     loss_fn=loss_fn,
     optimizer=optimizer,
-    device=args.device
+    device=args.device,
+    precision=args.precision
 )
 
 trainer.train(

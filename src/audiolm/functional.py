@@ -15,9 +15,9 @@ def attention(
     
 
     if scale is None:
-        scale = math.sqrt(key.size(-1))
+        scale = 1 / math.sqrt(key.size(-1))
 
-    scores = (query @ key.transpose(-2, -1)) / scale
+    scores = (query @ key.transpose(-2, -1)) * scale
 
     if mask is not None:
         scores = scores.masked_fill(mask==0, float('-inf'))

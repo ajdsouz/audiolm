@@ -18,19 +18,27 @@ dependencies = [
 
 [project.optional-dependencies]
 cpu = [
-    "torch==2.4.1"
+    "torch==2.4.1",
+    "lightning==2.5.4"
 ]
-gpu118 = [
-    "torch==2.4.1"
+mac = [
+    "torch==2.4.1",
+    "lightning==2.5.4"
 ]
 gpu121 = [
-    "torch==2.4.1"
+    "torch==2.4.1",
+    "lightning==2.5.4"
+]
+gpu118 = [
+    "torch==2.4.1",
+    "lightning==2.5.4"
 ]
 
 [tool.uv]
 conflicts = [
     [
         {extra = "cpu"},
+        {extra = "mac"},
         {extra = "gpu118"},
         {extra = "gpu121"},
     ]
@@ -50,6 +58,7 @@ audiolm = { path = "src" }
 scripts = { path = "." }
 torch = [
     {index = "pytorch-cpu", extra = "cpu"}, # intel / amd cpu (Apple silicon untested)
+    {index = "pypi", extra = "mac"},
     {index = "pytorch-gpu121", extra = "gpu121"}, # jones@lst
     {index = "pytorch-gpu118", extra = "gpu118"}, # jones@lst
 
