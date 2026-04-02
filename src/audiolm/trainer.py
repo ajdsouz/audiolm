@@ -68,7 +68,7 @@ class Trainer:
         input_ids = batch['input_ids']
         attention_mask = batch['attention_mask']
         inputs = input_ids[:,:-1]
-        attention_mask = attention_mask[:, :-1]
+        attention_mask = attention_mask[:, 1:]
         targets = input_ids[:,1:]
 
         targets = torch.where(
@@ -139,6 +139,7 @@ class Trainer:
                             self.logger.info(f"Non-finite loss at step {self.global_step} : {loss.item()}")
                             self.optimizer.zero_grad(set_to_none=True)
                             pbar.update(1)
+                            continue
 
                         loss_scaled = loss / grad_accumulation_steps
                         #loss_scaled.backward()
@@ -166,8 +167,8 @@ class Trainer:
                     total_loss += loss_scaled.item()
 
                     current_lr = self.optimizer.param_groups[0]['lr']
-                    self.logger.info(f"Train epoch: {self.epoch} step: {self.global_step} Tokens seen: {tokens_seen} Train Loss: {loss.item()}")
-                    wandb.log({'train_loss': loss.item(), 'tokens_seen': tokens_seen, 'lr': current_lr, 'epoch': self.epoch, 'step': self.global_step}, step=self.global_step)
+                    self.logger.info(f"Train epoch: {self.epoch} step: {self.global_step} Tokens seen: {tokens_seen} Train Loss: {loss_scaled.item()}")
+                    wandb.log({'train_loss': loss_scaled.item(), 'tokens_seen': tokens_seen, 'lr': current_lr, 'epoch': self.epoch, 'step': self.global_step}, step=self.global_step)
                 
                     # --------- evaluation ---------
                     if self.global_step % eval_every == 0 and val_dataloader and self.global_step > 0 or epoch_steps == len(train_dataloader):
