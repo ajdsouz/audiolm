@@ -78,10 +78,11 @@ class Trainer:
         )
         
         outputs, hidden_state = self.model(inputs, attention_mask)
-        outputs = outputs.clamp(min=-10.0, max=10.0)
-        outputs = torch.nan_to_num(outputs, nan=-10.0, posinf=10.0, neginf=-10.0)
-        self.logger.info(f"[LOGITS] Step {self.global_step} | min={outputs.min().item():.2f} max={outputs.max().item():.2f} mean={outputs.mean().item():.3f} std={outputs.std().item():.3f}")
-        self.logger.info(f"[HIDDEN STATES] Step {self.global_step} | min={hidden_state.min().item():.2f} max={hidden_state.max().item():.2f} mean={hidden_state.mean().item():.3f} std={hidden_state.std().item():.3f}")
+        output_ids = torch.argmax(outputs, dim=-1)
+        
+        
+        # self.logger.info(f"[LOGITS] Step {self.global_step} | min={outputs.min().item():.2f} max={outputs.max().item():.2f} mean={outputs.mean().item():.3f} std={outputs.std().item():.3f}")
+        # self.logger.info(f"[HIDDEN STATES] Step {self.global_step} | min={hidden_state.min().item():.2f} max={hidden_state.max().item():.2f} mean={hidden_state.mean().item():.3f} std={hidden_state.std().item():.3f}")
         loss = self.loss_fn(
             outputs.view(-1, outputs.size(-1)), targets.view(-1)
         )
@@ -110,9 +111,9 @@ class Trainer:
             grad_accumulation_steps: int = 1,
             grad_clip_max_norm: float = 1.0
     ) -> None:
-        print("Preparing Dataloaders!")
+        self.logger.info("Preparing Dataloaders!")
         train_dataloader, val_dataloader = self.fabric.setup_dataloaders(train_dataloader, val_dataloader)
-        print("Dataloader Preperation Complete. Starting Training!")
+        self.logger.info("Dataloader Preperation Complete. Starting Training!")
         for epoch in range(self.epoch, num_epochs):
             self.epoch = epoch
             total_loss = 0.0
@@ -128,23 +129,23 @@ class Trainer:
                     tokens_seen += batch['input_ids'].numel() # store no. of tokens model has seen in each batch
                     self.model.train()
                     
-                    is_accumulating = ((idx + 1) % grad_accumulation_steps == 0) or (idx + 1 == len(train_dataloader))
+                    is_update_step = ((idx + 1) % grad_accumulation_steps == 0) or (idx + 1 == len(train_dataloader))
 
-                    with self.fabric.no_backward_sync(self.model, enabled=is_accumulating):
+                    with self.fabric.no_backward_sync(self.model, enabled= not is_update_step):
                         loss = self._common_step(batch)
 
                         if not torch.isfinite(loss).all():
-                            print(f"Non-finite loss at step {self.global_step} : {loss.item()}")
+                            # print(f"Non-finite loss at step {self.global_step} : {loss.item()}")
                             self.logger.info(f"Non-finite loss at step {self.global_step} : {loss.item()}")
                             self.optimizer.zero_grad(set_to_none=True)
                             pbar.update(1)
 
                         loss_scaled = loss / grad_accumulation_steps
                         #loss_scaled.backward()
-                        self.fabric.backward(loss)
+                        self.fabric.backward(loss_scaled)
                     
 
-                    if not is_accumulating:
+                    if is_update_step:
                         grad_norm = self.fabric.clip_gradients(
                             self.model,
                             self.optimizer,
@@ -154,9 +155,7 @@ class Trainer:
                         self.logger.info(f"[GRAD] Step {self.global_step} | max abs grad = {max_grad:.4f}")    
                         if torch.isfinite(grad_norm):
                             self.optimizer.step()
-
-                        
-                        
+                            
                         # self.optimizer.step()
                         self.optimizer.zero_grad(set_to_none=True)
                         if self.scheduler:
