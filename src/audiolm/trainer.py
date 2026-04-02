@@ -167,8 +167,8 @@ class Trainer:
                     total_loss += loss_scaled.item()
 
                     current_lr = self.optimizer.param_groups[0]['lr']
-                    self.logger.info(f"Train epoch: {self.epoch} step: {self.global_step} Tokens seen: {tokens_seen} Train Loss: {loss_scaled.item()}")
-                    wandb.log({'train_loss': loss_scaled.item(), 'tokens_seen': tokens_seen, 'lr': current_lr, 'epoch': self.epoch, 'step': self.global_step}, step=self.global_step)
+                    self.logger.info(f"Train epoch: {self.epoch} step: {self.global_step} Tokens seen: {tokens_seen} Train Loss: {loss.item()}")
+                    wandb.log({'train_loss': loss.item(), 'tokens_seen': tokens_seen, 'lr': current_lr, 'epoch': self.epoch, 'step': self.global_step}, step=self.global_step)
                 
                     # --------- evaluation ---------
                     if self.global_step % eval_every == 0 and val_dataloader and self.global_step > 0 or epoch_steps == len(train_dataloader):
@@ -181,7 +181,7 @@ class Trainer:
                         self.save_checkpoint()
                         self.logger.info(f"Checkpoint Saved | Train loss: {loss} | Eval loss: {val_loss}")
 
-                    pbar.set_description(f"Train Loss step : {loss_scaled.item():.4f} | Val Loss : {val_loss}")
+                    pbar.set_description(f"Train Loss step : {loss.item():.4f} | Val Loss : {val_loss}")
                     pbar.update(1)
                 self.logger.info(f"Epoch {self.epoch} ended with train loss {total_loss / epoch_steps} validation loss {val_loss}")
 
