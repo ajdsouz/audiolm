@@ -181,7 +181,7 @@ class Trainer:
                         self.save_checkpoint()
                         self.logger.info(f"Checkpoint Saved | Train loss: {loss} | Eval loss: {val_loss}")
 
-                    pbar.set_description(f"Train Loss step : {loss.item():.4f} | Val Loss : {val_loss}")
+                    pbar.set_description(f"Train Loss step : {loss_scaled.item():.4f} | Val Loss : {val_loss}")
                     pbar.update(1)
                 self.logger.info(f"Epoch {self.epoch} ended with train loss {total_loss / epoch_steps} validation loss {val_loss}")
 
