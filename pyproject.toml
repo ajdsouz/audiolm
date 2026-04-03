@@ -8,30 +8,41 @@ authors = [
     { name = "sslet", email = "s8saslet@stud.uni-saarland.de" },
     { name = "Houda", email = "pqr@gmail" }
 ]
-requires-python = ">=3.12"
+requires-python = "==3.10"
 dependencies = [
-    "datasets>=4.4.1",
+    "beartype>=0.22.9",
+    "datasets>=4.8.4",
     "safetensors>=0.7.0",
+    "speechtokenizer>=1.0.1",
+    "tensorboard>=2.20.0",
     "transformers>=5.2.0",
     "wandb>=0.25.0",
 ]
 
 [project.optional-dependencies]
 cpu = [
-    "torch==2.4.1",
-    "lightning==2.5.4"
+    "torch==2.5.1",
+    "lightning==2.5.4",
+    "torchaudio==2.5.1",
+    "torchcodec==0.1"
 ]
 mac = [
-    "torch==2.4.1",
-    "lightning==2.5.4"
+    "torch==2.5.1",
+    "lightning==2.5.4",
+    "torchaudio==2.5.1", 
+    "torchcodec==0.1"
 ]
 gpu121 = [
-    "torch==2.4.1",
-    "lightning==2.5.4"
+    "torch==2.5.1",
+    "lightning==2.5.4", 
+    "torchaudio==2.5.1", 
+    "torchcodec==0.1"
 ]
 gpu118 = [
-    "torch==2.4.1",
-    "lightning==2.5.4"
+    "torch==2.5.1",
+    "lightning==2.5.4", 
+    "torchaudio==2.5.1", 
+    "torchcodec==0.1"
 ]
 
 [tool.uv]

@@ -1,3 +1,5 @@
+from audiolm.tokenizer import get_text_tokenizer
+
 from datasets import load_dataset, Dataset, concatenate_datasets
 import argparse
 from functools import partial
@@ -12,7 +14,6 @@ parser.add_argument("--num_proc", type=int)
 parser.add_argument("--src_column", type=str)
 parser.add_argument("--tgt_column", type=str)
 parser.add_argument("--train_test_ratio", type=float)
-parser.add_argument("--max_length", type=int)
 parser.add_argument("--tokenizer", type=str)
 parser.add_argument("--data_dir", type=str)
 
@@ -25,18 +26,18 @@ def preprocess_dataset(
         task: str,
         src_column: str,
         tgt_column: str,
-        max_length: int,
         num_proc: int,
         flip=False,
     ) -> Dataset:
     
-    def apply_template( example: dict, task: str, src: str, tgt: str, tokenizer: PreTrainedTokenizer, max_length: int = 128) -> dict:
+    def apply_template( example: dict, task: str, src: str, tgt: str, tokenizer: PreTrainedTokenizer) -> dict:
         """
         A general template for multi-task formatting.
 
-        [T2T English German]  Resumption of the session OUTPUT:  Wiederaufnahme der Sitzungsperiode <|endoftext|>
-          |     |       |                    |                              |                            |
-         task   src    tgt              src sentnece                  tgt sentence                    eos_token
+        <|INPUT|>[MT en de]<|text_start|>Resumption of the session<|text_end|><|OUTPUT|><|text_start|>Wiederaufnahme der Sitzungsperiode<|text_end|><|endoftext|>
+           |       |  |  |                    |                                                                          |                              |
+         input   task src tgt              src sentnece                                                              tgt sentence                     eos_token
+        token
 
         Args:
             task (str): Task abreviation
@@ -44,22 +45,14 @@ def preprocess_dataset(
             tgt (str): target language
             example (DatasetDict): a row from the dataset to be mapped
             tokenizer (AutoTokenizer): the tokenizer
-            max_length (int): maximum length of tokenized output.
 
         Returns:
             dict: text formatted to the template
         """
-        text = f"[{task} {src} {tgt}] {example[src]} OUTPUT: {example[tgt]} <|endoftext|>"
-        tokenized = tokenizer(
-            text,
-            max_length=max_length,
-            truncation=True,
-            padding="max_length",
-            return_tensors=None
-        )
+        text = f"<|INPUT|>[{task} {src} {tgt}]<|text_start|>{example[src]}<|text_end|><|OUTPUT|><|text_start|>{example[tgt]}<|text_end|><|endoftext|>"
+        tokenized = tokenizer(text)
         return {
-            'text' : text,
-            **tokenized
+            'input_ids': tokenized['input_ids']
         }
     
     if flip:
@@ -73,7 +66,6 @@ def preprocess_dataset(
         src=src,
         tgt=tgt,
         tokenizer=tokenizer,
-        max_length=max_length
     )
     
     dataset = dataset.map(
@@ -87,7 +79,8 @@ def preprocess_dataset(
 
 
 def create_datasets(args: argparse.Namespace):
-    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
+    # tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
+    tokenizer = get_text_tokenizer(args.tokenizer)
     dataset = load_dataset(args.dataset_name)
     print(f"using {args.tokenizer} on {args.dataset_name}")
     dataset = dataset['train'].select(range(int(args.split * len(dataset['train']))))
@@ -99,10 +92,9 @@ def create_datasets(args: argparse.Namespace):
     flipped_dataset = preprocess_dataset(
         flip,
         tokenizer,
-        task = 'T2T',
+        task = 'MT',
         src_column=args.src_column,
         tgt_column=args.tgt_column,
-        max_length=args.max_length,
         num_proc=args.num_proc,
         flip=True
     )
@@ -110,10 +102,9 @@ def create_datasets(args: argparse.Namespace):
     unflipped_dataset = preprocess_dataset(
         no_flip,
         tokenizer,
-        task = 'T2T',
+        task = 'MT',
         src_column=args.src_column,
         tgt_column=args.tgt_column,
-        max_length=args.max_length,
         num_proc=args.num_proc,
         flip=False
     )

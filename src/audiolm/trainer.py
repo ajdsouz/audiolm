@@ -68,7 +68,7 @@ class Trainer:
         input_ids = batch['input_ids']
         attention_mask = batch['attention_mask']
         inputs = input_ids[:,:-1]
-        attention_mask = attention_mask[:, 1:]
+        attention_mask = attention_mask[:, :-1]
         targets = input_ids[:,1:]
 
         targets = torch.where(

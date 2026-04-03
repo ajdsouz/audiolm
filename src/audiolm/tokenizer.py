@@ -1,7 +1,8 @@
 from transformers import AutoTokenizer
-from .config import SpeechLLMConfig
+# from speechtokenizer import SpeechTokenizer
+#from .config import SpeechLLMConfig
 
-config = SpeechLLMConfig
+#config = SpeechLLMConfig
 # SEMANTIC_TOKENS = [f"semantic_{idx}" for idx in range(config.semantic_vocab_size)]
 
 SPECIAL_TOKENS_DICT = {
@@ -14,6 +15,15 @@ SPECIAL_TOKENS_DICT = {
     "pad_token": "<|pad_token|>"
 }
 
-def get_tokenizer(model_name: str, special_tokens_dict: dict = SPECIAL_TOKENS_DICT):
+def get_text_tokenizer(model_name: str, special_tokens_dict: dict = SPECIAL_TOKENS_DICT):
 
     return AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B", extra_special_tokens = special_tokens_dict)
+
+# def get_audio_tokenizer(model_path):
+
+#     return SpeechTokenizer.load_from_checkpoint(config_path=model_path + 'config.json', ckpt_path=model_path + 'ckpt.dev')
+    
+
+if __name__ == "__main__":
+    tokenizer = get_text_tokenizer("Qwen/Qwen2.5-0.5B")
+    tokenizer.save_pretrained('ckpt/pretrained/tokenizer')
