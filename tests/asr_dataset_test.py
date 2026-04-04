@@ -11,17 +11,21 @@ tokenizer = SpeechTokenizer.load_from_checkpoint(
 )
 
 dataset = load_dataset("hf-internal-testing/librispeech_asr_dummy")
-#dataset = dataset['validation'].cast_column("audio", Audio(sampling_rate=16000))
-# print(dataset.column_names)
-
+dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
+print(dataset.column_names)
+tokenizer = tokenizer.to('mps')
 for example in dataset['validation']:
-    audio, sr = torchaudio.load(example["audio"]["path"])
+    #audio, sr = torchaudio.load(example["audio"]["path"])
+    audio = torch.tensor(example['audio']['array']).to('mps')
+    print(audio.shape)
+    
 
-    if sr != tokenizer.sample_rate:
-        audio = torchaudio.functional.resample(audio, sr, tokenizer.sample_rate)
-
+    audio = audio.unsqueeze(0).unsqueeze(1)
+    # if sr != tokenizer.sample_rate:
+    #     audio = torchaudio.functional.resample(audio, sr, tokenizer.sample_rate)
+    print(audio.shape)
     with torch.no_grad():
-        tokens = tokenizer.encode(audio)
+       tokens = tokenizer.encode(audio)
     break
 
 print(tokens.shape)

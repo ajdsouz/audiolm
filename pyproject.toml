@@ -21,28 +21,28 @@ dependencies = [
 
 [project.optional-dependencies]
 cpu = [
-    "torch==2.5.1",
+    "torch==2.7.1",
     "lightning==2.5.4",
-    "torchaudio==2.5.1",
-    "torchcodec==0.1"
+    "torchaudio==2.7.1",
+    "torchcodec==0.5"
 ]
 mac = [
-    "torch==2.5.1",
+    "torch==2.7.1",
     "lightning==2.5.4",
-    "torchaudio==2.5.1", 
-    "torchcodec==0.1"
+    "torchaudio==2.7.1", 
+    "torchcodec==0.5"
 ]
-gpu121 = [
-    "torch==2.5.1",
+gpu126 = [
+    "torch==2.7.1",
     "lightning==2.5.4", 
-    "torchaudio==2.5.1", 
-    "torchcodec==0.1"
+    "torchaudio==2.7.1", 
+    "torchcodec==0.5"
 ]
 gpu118 = [
-    "torch==2.5.1",
+    "torch==2.7.1",
     "lightning==2.5.4", 
-    "torchaudio==2.5.1", 
-    "torchcodec==0.1"
+    "torchaudio==2.7.1", 
+    "torchcodec==0.5"
 ]
 
 [tool.uv]
@@ -51,7 +51,7 @@ conflicts = [
         {extra = "cpu"},
         {extra = "mac"},
         {extra = "gpu118"},
-        {extra = "gpu121"},
+        {extra = "gpu126"},
     ]
 ]
 
@@ -59,10 +59,6 @@ conflicts = [
 requires = ["uv_build>=0.9.8,<0.10.0"]
 build-backend = "uv_build"
 
-[dependency-groups]
-dev = [
-    "typeguard>=4.4.4",
-]
 
 [tool.uv.sources]
 audiolm = { path = "src" }
@@ -70,7 +66,7 @@ scripts = { path = "." }
 torch = [
     {index = "pytorch-cpu", extra = "cpu"}, # intel / amd cpu (Apple silicon untested)
     {index = "pypi", extra = "mac"},
-    {index = "pytorch-gpu121", extra = "gpu121"}, # jones@lst
+    {index = "pytorch-gpu126", extra = "gpu126"}, # jones@lst
     {index = "pytorch-gpu118", extra = "gpu118"}, # jones@lst
 
 ]
@@ -85,8 +81,8 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [[tool.uv.index]]
-name = "pytorch-gpu121"
-url = "https://download.pytorch.org/whl/cu121"
+name = "pytorch-gpu126"
+url = "https://download.pytorch.org/whl/cu126"
 explicit = true
 
 [[tool.uv.index]]
